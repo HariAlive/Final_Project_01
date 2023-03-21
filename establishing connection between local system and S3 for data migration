@@ -1,0 +1,24 @@
+import os
+import boto3
+
+s3 = boto3.client(
+    service_name='s3',
+    region_name='ap-south-1',
+    aws_access_key_id='AKIAQMHO4RIROXREEIXX',
+    aws_secret_access_key='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'
+)
+
+bucket = "migbuck1"
+prefix = "try1/"
+
+filepath = r"C:\Users\Malavika Vipin\Desktop\Hari\project_1"
+file_names = os.listdir(filepath)
+
+for i, filename in enumerate(file_names):
+    
+    file_key = filepath +"\\" + filename
+    if i == 49:
+        break
+    object_name = prefix  + os.path.basename(filename)
+    
+    s3.upload_file(file_key, bucket, object_name)
