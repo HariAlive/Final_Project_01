@@ -1,0 +1,79 @@
+import psycopg2
+import boto3
+import json
+import pandas as pd
+import time
+
+# establishing coonection with the RDS instance
+conn = psycopg2.connect(
+    host="database-1.co6hkqdzo3zl.us-east-1.rds.amazonaws.com",
+    database="",
+    user="postgres",
+    password="admin1234"
+)
+
+# creating a client using S3 bucket details
+s3 = boto3.client('s3',
+                  aws_access_key_id='AKIAQMHO4RIROXREEIXX',
+                  aws_secret_access_key='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')
+
+# creating a resource using s3 bucket details
+s3_resource = boto3.resource('s3',
+                  aws_access_key_id='AKIAQMHO4RIROXREEIXX',
+                  aws_secret_access_key='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')
+
+#specifying the targeted bucket
+my_bucket = s3_resource.Bucket("migbuck1")
+
+# create a cursor object to execute SQL queries
+cur = conn.cursor()
+
+# creating a new table with the desired name
+cur.execute("""
+    CREATE TABLE project1 (
+        type varchar(30),
+        cik int,
+        entityName varchar(30),
+        facts text
+    )
+""")
+conn.commit()
+
+# accessing the data inside S3 bucket and looping it one by one for pushing it into RDS
+for i, obj_summary in enumerate(my_bucket.objects.filter(Prefix="try1/")):
+    if ".json" in obj_summary.key:
+        s3_object = s3.get_object(Bucket='migbuck1', Key=obj_summary.key)
+        s3_data = s3_object['Body'].read().decode('utf-8')
+        data = json.loads(s3_data)
+        #print(obj_summary.key)
+
+        # create a cursor object to execute SQL queries
+        cur = conn.cursor()
+
+        # converting the data into a dataframe using pandas
+        df = pd.DataFrame(data)
+
+        # reseting index for better readability
+        df = df.reset_index()
+
+for row in data:
+    cur.execute(f"INSERT INTO project1 (type, cik, entityname, facts) VALUES (%s, %s, %s, %s)", (row['column1'], row['column2'], row['column3']))
+
+    for ind in range(df.shape[0]):
+      df.iloc[ind]
+      cur.execute(f"INSERT INTO project1 (type, cik, entityName, facts) VALUES (%s, %s, %s, %s)",(df.iloc[ind]['index'],int(df.iloc[ind]['cik']),df.iloc[ind]['entityName'],json.dumps(df.iloc[ind]['facts'])))
+      conn.commit()
+
+# For dropping the table 
+#cur.execute("DROP TABLE project1")
+
+# fetching the data from the RDS using select queries
+cur = conn.cursor()
+cur.execute("SELECT * from project1")
+results = cur.fetchall()
+print(results)
+conn.commit()
+
+# close the cursor and connection objects
+cur.close()
+conn.close()
