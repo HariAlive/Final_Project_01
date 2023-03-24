@@ -20,6 +20,6 @@ The above steps as code are given in the file "establishing connection betweeen 
 Issues faced while doing the project:
 The zip file downloaded from the given URL was not accessible and it had badzip file error. More over the URL was giving a 403 forbidden error. Hence the zip file was downloaded manually to the local system and only 50 files were uploaded into the s3 from the local system to check the code and complete the project.
 
-The same as code is given in the file "establihing connection between loacl and S3"
+The same as code is given in the file "establihing connection between local and S3"
 
 
